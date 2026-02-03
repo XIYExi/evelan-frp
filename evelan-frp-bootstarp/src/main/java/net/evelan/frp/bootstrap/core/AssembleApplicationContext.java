@@ -88,7 +88,7 @@ public class AssembleApplicationContext {
             containerMap.put(clazz, o);
             EController eController = clazz.getAnnotation(EController.class);
             EComponent eComponent = clazz.getAnnotation(EComponent.class);
-            if ()
+
         }
     }
 

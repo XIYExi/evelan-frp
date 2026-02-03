@@ -1,0 +1,8 @@
+.idea/
+
+evelan-frp-server/target/
+evelan-frp-client/target/
+evelan-frp-common/target/
+evelan-frp-bootstrap/target/
+
+**/target/*
