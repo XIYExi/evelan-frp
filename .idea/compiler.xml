@@ -6,8 +6,9 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="evelan-frp-common" />
         <module name="evelan-frp-client" />
+        <module name="evelan-frp-bootstarp" />
+        <module name="evelan-frp-common" />
         <module name="evelan-frp-server" />
       </profile>
     </annotationProcessing>

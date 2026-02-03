@@ -12,6 +12,7 @@
         <module>evelan-frp-common</module>
         <module>evelan-frp-server</module>
         <module>evelan-frp-client</module>
+        <module>evelan-frp-bootstarp</module>
     </modules>
 
     <properties>
@@ -49,6 +50,12 @@
             <groupId>com.alibaba</groupId>
             <artifactId>druid</artifactId>
             <version>${druid.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>1.25</version>
         </dependency>
     </dependencies>
 

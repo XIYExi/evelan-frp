@@ -1,0 +1,19 @@
+package net.evelan.frp.server;
+
+import net.evelan.frp.bootstrap.annotation.EBean;
+import net.evelan.frp.bootstrap.annotation.EComponent;
+
+@EComponent
+public class Test1 {
+
+    @EBean("domain1")
+    public Domain domain1() {
+        return new Domain();
+    }
+
+    @EBean("domain2")
+    public Domain domain2() {
+        return new Domain();
+    }
+
+}
