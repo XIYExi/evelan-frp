@@ -3,7 +3,7 @@ package net.evelan.frp.server;
 import net.evelan.frp.bootstrap.annotation.EBean;
 import net.evelan.frp.bootstrap.annotation.EComponent;
 
-@EComponent
+@EComponent("T1")
 public class Test1 implements Test{
 
     @EBean("domain1")
