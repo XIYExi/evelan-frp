@@ -1,6 +1,6 @@
 package net.evelan.frp.bootstrap;
 
-import net.evelan.frp.bootstrap.annotation.core.EvelanBootApplication;
+import net.evelan.frp.bootstrap.annotation.EvelanBootApplication;
 import net.evelan.frp.bootstrap.core.EvelanApplicationContext;
 
 import java.util.Set;

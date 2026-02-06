@@ -1,12 +1,12 @@
-package net.evelan.frp.bootstrap.core;
+package net.evelan.frp.bootstrap.core.deprecated;
 
-import net.evelan.frp.bootstrap.annotation.core.EBean;
-import net.evelan.frp.bootstrap.annotation.core.EConfiguration;
-import net.evelan.frp.bootstrap.annotation.core.EComponent;
-import net.evelan.frp.bootstrap.annotation.core.EController;
-import net.evelan.frp.bootstrap.annotation.core.EImport;
-import net.evelan.frp.bootstrap.annotation.core.EPostConstruct;
-import net.evelan.frp.bootstrap.annotation.core.EService;
+import net.evelan.frp.bootstrap.annotation.bean.EBean;
+import net.evelan.frp.bootstrap.annotation.bean.EConfiguration;
+import net.evelan.frp.bootstrap.annotation.bean.EComponent;
+import net.evelan.frp.bootstrap.annotation.bean.EController;
+import net.evelan.frp.bootstrap.annotation.lifecycle.EImport;
+import net.evelan.frp.bootstrap.annotation.lifecycle.EPostConstruct;
+import net.evelan.frp.bootstrap.annotation.bean.EService;
 import net.evelan.frp.bootstrap.utils.ReflectionUtil;
 
 import java.lang.annotation.Annotation;

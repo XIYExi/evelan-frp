@@ -1,7 +1,7 @@
 package net.evelan.frp.server;
 
-import net.evelan.frp.bootstrap.annotation.core.EController;
-import net.evelan.frp.bootstrap.annotation.core.EImport;
+import net.evelan.frp.bootstrap.annotation.bean.EController;
+import net.evelan.frp.bootstrap.annotation.lifecycle.EImport;
 
 @EController("controller")
 public class TestController {

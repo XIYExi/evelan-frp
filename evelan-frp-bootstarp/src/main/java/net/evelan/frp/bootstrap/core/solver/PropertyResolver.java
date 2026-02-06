@@ -1,4 +1,4 @@
-package net.evelan.frp.bootstrap.core;
+package net.evelan.frp.bootstrap.core.solver;
 
 import net.evelan.frp.bootstrap.entity.PropertyExpr;
 

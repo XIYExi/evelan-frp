@@ -1,4 +1,4 @@
-package net.evelan.frp.bootstrap.annotation.core;
+package net.evelan.frp.bootstrap.annotation.lifecycle;
 
 
 import java.lang.annotation.*;
@@ -11,4 +11,6 @@ import java.lang.annotation.*;
 @Documented
 public @interface EImport {
     String value() default "";
+
+    boolean isRequired() default true;
 }

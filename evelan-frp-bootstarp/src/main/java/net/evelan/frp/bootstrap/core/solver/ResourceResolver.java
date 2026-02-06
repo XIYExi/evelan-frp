@@ -1,10 +1,10 @@
-package net.evelan.frp.bootstrap.core;
+package net.evelan.frp.bootstrap.core.solver;
 
 
-import net.evelan.frp.bootstrap.annotation.core.EComponent;
-import net.evelan.frp.bootstrap.annotation.core.EConfiguration;
-import net.evelan.frp.bootstrap.annotation.core.EController;
-import net.evelan.frp.bootstrap.annotation.core.EService;
+import net.evelan.frp.bootstrap.annotation.bean.EComponent;
+import net.evelan.frp.bootstrap.annotation.bean.EConfiguration;
+import net.evelan.frp.bootstrap.annotation.bean.EController;
+import net.evelan.frp.bootstrap.annotation.bean.EService;
 import net.evelan.frp.bootstrap.utils.ReflectionUtil;
 
 import java.util.List;

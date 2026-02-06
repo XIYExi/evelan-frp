@@ -1,7 +1,7 @@
 package net.evelan.frp.server;
 
-import net.evelan.frp.bootstrap.annotation.core.EBean;
-import net.evelan.frp.bootstrap.annotation.core.EConfiguration;
+import net.evelan.frp.bootstrap.annotation.bean.EBean;
+import net.evelan.frp.bootstrap.annotation.bean.EConfiguration;
 
 @EConfiguration
 public class TestConfiguration {

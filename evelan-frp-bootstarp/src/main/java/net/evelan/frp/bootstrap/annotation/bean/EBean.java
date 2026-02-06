@@ -1,4 +1,4 @@
-package net.evelan.frp.bootstrap.annotation.core;
+package net.evelan.frp.bootstrap.annotation.bean;
 
 import java.lang.annotation.*;
 
@@ -11,4 +11,8 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface EBean {
     public String value() default "";
+
+    String initMethod() default "";
+
+    String destroyMethod() default "";
 }

@@ -1,4 +1,4 @@
-package net.evelan.frp.bootstrap.annotation.core;
+package net.evelan.frp.bootstrap.annotation.lifecycle;
 
 import java.lang.annotation.*;
 

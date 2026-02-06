@@ -1,6 +1,6 @@
 package net.evelan.frp.bootstrap.utils;
 
-import net.evelan.frp.bootstrap.core.ClassPathScanner;
+import net.evelan.frp.bootstrap.core.context.ClassPathScanner;
 
 import java.lang.annotation.Annotation;
 import java.util.HashSet;
