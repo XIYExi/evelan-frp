@@ -1,4 +1,4 @@
-package net.evelan.frp.bootstrap.utils;
+package net.evelan.frp.bootstrap.core;
 
 import java.io.File;
 import java.io.IOException;
