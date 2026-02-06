@@ -2,8 +2,12 @@ package net.evelan.frp.bootstrap.core;
 
 import net.evelan.frp.bootstrap.annotation.EComponent;
 import net.evelan.frp.bootstrap.annotation.EController;
+import net.evelan.frp.bootstrap.annotation.EImport;
+import net.evelan.frp.bootstrap.annotation.EPostConstruct;
 import net.evelan.frp.bootstrap.utils.ReflectionUtil;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -31,14 +35,38 @@ public class AssembleApplicationContext {
      * @param configFilePath yaml配置文件路径
      */
     public AssembleApplicationContext(String configFilePath) {
-        initialize();
+        doInitInstance();
+        doDI();
+        doInitMethods();
+    }
+
+
+    /**
+     * 执行初始化方法
+     */
+    private void doInitMethods() {
+        for (Map.Entry<Class<?>, Object> entry : containerMap.entrySet()) {
+            Object bean = entry.getValue();
+            Class<?> clazz = entry.getKey();
+            Method[] methods = clazz.getDeclaredMethods();
+            for (Method method : methods) {
+                if (method.isAnnotationPresent(EPostConstruct.class)) {
+                    try {
+                        method.setAccessible(true);
+                        method.invoke(bean);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Failed to invoke init method for " + clazz.getName(), e);
+                    }
+                }
+            }
+        }
     }
 
 
     /**
      * 初始化application上下文容器
      */
-    private void initialize() {
+    private void doInitInstance() {
         try {
             // 扫描出来被注解标记的所有类
             Set<Class<?>> annClasses = collectBeanObject();
@@ -49,6 +77,79 @@ public class AssembleApplicationContext {
             System.exit(1);
         }
     }
+
+
+    /**
+     * 依赖注入
+     */
+    private void doDI() {
+        Set<Class<?>> classes = containerMap.keySet();
+        for (Class<?> clazz : classes) {
+            // 得到所有的属性
+            Field[] declaredFields = clazz.getDeclaredFields();
+            for (Field declaredField : declaredFields) {
+                // 看这个注解上面有没有挂@EImport注解
+                boolean annotationPresent = declaredField.isAnnotationPresent(EImport.class);
+                if (annotationPresent) {
+                    EImport importAnnotation = declaredField.getAnnotation(EImport.class);
+                    String objectName = importAnnotation.value();
+                    Object bean = null;
+                    if (!objectName.isEmpty()) {
+                        // EImport配置了value，优先按照value找bean对象
+                        bean = getBean(objectName);
+                        if (bean == null) {
+                            throw new RuntimeException("No bean named " + objectName + " available.");
+                        }
+                    } else {
+                        // 如果没有配置value，那么按照类型找
+                        Class<?> type = declaredField.getType();
+                        // 按照属性类型去找
+                        bean = getBean(type);
+                        if (bean == null) {
+                            // 根据接口类型寻找
+                            bean = getBeanByInterface(type);
+                            if (bean == null)
+                                throw new RuntimeException("No bean named " + clazz + " available.");
+                        }
+                    }
+
+                    // 需要依赖注入的对象找到了
+                    try {
+                        declaredField.setAccessible(true);
+                        Object o = containerMap.get(clazz);
+                        declaredField.set(o, bean);
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        }
+    }
+
+    private Object getBeanByInterface(Class<?> clazz) {
+        if (interfaceContainerMap.containsKey(clazz)) {
+            List<Object> objects = interfaceContainerMap.get(clazz);
+            if (objects == null)
+                return null;
+            if (objects.size() > 1) {
+                throw new RuntimeException("No qualifying bean of type " + clazz.getName() + " available: expected single matching bean but found " + objects.size()+ ":" + objects);
+            }
+            return objects.get(0);
+        }
+        return null;
+    }
+
+    public Object getBean(String objectName) {
+        if (iocNameContainerMap.containsKey(objectName)) return iocNameContainerMap.get(objectName);
+        return null;
+    }
+
+    public Object getBean(Class<?> clazz) {
+        // 如果通过类能直接找到那就ok
+        if (containerMap.containsKey(clazz)) return containerMap.get(clazz);
+        return null;
+    }
+
 
     /**
      * 扫描出所有被注解标记的类
