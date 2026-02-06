@@ -9,7 +9,6 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.function.BiFunction;
 
 /**
  * 依赖注入器
@@ -19,10 +18,10 @@ import java.util.function.BiFunction;
  */
 public class DependencyInjector {
 
-    private final AnnotationConfigApplicationContext context;
+    private final EvelanConfigApplicationContext context;
     private final PropertyResolver propertyResolver;
 
-    public DependencyInjector(AnnotationConfigApplicationContext context, PropertyResolver propertyResolver) {
+    public DependencyInjector(EvelanConfigApplicationContext context, PropertyResolver propertyResolver) {
         this.context = context;
         this.propertyResolver = propertyResolver;
     }

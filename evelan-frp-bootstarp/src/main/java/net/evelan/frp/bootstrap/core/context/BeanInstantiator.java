@@ -17,10 +17,10 @@ import java.lang.reflect.Parameter;
  */
 public class BeanInstantiator {
 
-    private final AnnotationConfigApplicationContext context;
+    private final EvelanConfigApplicationContext context;
     private final PropertyResolver propertyResolver;
 
-    public BeanInstantiator(AnnotationConfigApplicationContext context, PropertyResolver propertyResolver) {
+    public BeanInstantiator(EvelanConfigApplicationContext context, PropertyResolver propertyResolver) {
         this.context = context;
         this.propertyResolver = propertyResolver;
     }

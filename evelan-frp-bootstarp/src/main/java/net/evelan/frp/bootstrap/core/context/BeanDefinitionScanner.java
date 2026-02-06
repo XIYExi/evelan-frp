@@ -29,9 +29,9 @@ import java.util.Set;
  */
 public class BeanDefinitionScanner {
 
-    private final AnnotationConfigApplicationContext context;
+    private final EvelanConfigApplicationContext context;
 
-    public BeanDefinitionScanner(AnnotationConfigApplicationContext context) {
+    public BeanDefinitionScanner(EvelanConfigApplicationContext context) {
         this.context = context;
     }
 

@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
  * 核心容器类，负责 Bean 的扫描、定义、实例化、依赖注入和生命周期管理。
  * 模拟了 Spring 的 IOC 容器行为。
  */
-public class AnnotationConfigApplicationContext implements ConfigurableApplicationContext {
+public class EvelanConfigApplicationContext implements ConfigurableApplicationContext {
     
     protected final PropertyResolver propertyResolver;
     protected final Map<String, BeanDefinition> beans;
@@ -36,7 +36,7 @@ public class AnnotationConfigApplicationContext implements ConfigurableApplicati
     // Bean 后置处理器列表
     private final List<BeanPostProcessor> beanPostProcessors = new ArrayList<>();
 
-    public AnnotationConfigApplicationContext(Class<?> configClass, PropertyResolver propertyResolver) {
+    public EvelanConfigApplicationContext(Class<?> configClass, PropertyResolver propertyResolver) {
         this.propertyResolver = propertyResolver;
         this.dependencyInjector = new DependencyInjector(this, propertyResolver);
         this.beanInstantiator = new BeanInstantiator(this, propertyResolver);
