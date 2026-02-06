@@ -204,4 +204,8 @@ public class BeanDefinition implements Comparable<BeanDefinition> {
         return this.instance;
     }
 
+    public int getOrder() {
+        return this.order;
+    }
+
 }
