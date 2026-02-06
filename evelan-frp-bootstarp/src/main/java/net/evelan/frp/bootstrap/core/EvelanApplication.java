@@ -1,6 +1,6 @@
 package net.evelan.frp.bootstrap.core;
 
-import net.evelan.frp.bootstrap.annotation.EvelanBootApplication;
+import net.evelan.frp.bootstrap.annotation.EApplication;
 import net.evelan.frp.bootstrap.core.context.EvelanConfigApplicationContext;
 import net.evelan.frp.bootstrap.core.solver.PropertyResolver;
 
@@ -20,7 +20,7 @@ public class EvelanApplication {
      */
     public static EvelanConfigApplicationContext run(Class<?> primarySource, String... args) {
         // 检查是否有 @EvelanBootApplication 注解
-        if (!primarySource.isAnnotationPresent(EvelanBootApplication.class)) {
+        if (!primarySource.isAnnotationPresent(EApplication.class)) {
             throw new RuntimeException("Startup failed: The primary source " + primarySource.getName() +
                 " is not annotated with @EvelanBootApplication");
         }

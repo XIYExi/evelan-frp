@@ -1,6 +1,6 @@
 package net.evelan.frp.bootstrap.core.deprecated;
 
-import net.evelan.frp.bootstrap.annotation.EvelanBootApplication;
+import net.evelan.frp.bootstrap.annotation.EApplication;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,7 +24,7 @@ public class ServerEvelanApplication {
      */
     public static ServerApplicationContext run(Class<?> primarySource, String... args) {
         // 检查是否有 @EvelanBootApplication 注解
-        if (!primarySource.isAnnotationPresent(EvelanBootApplication.class)) {
+        if (!primarySource.isAnnotationPresent(EApplication.class)) {
             throw new RuntimeException("Startup failed: The primary source " + primarySource.getName() + 
                 " is not annotated with @EvelanBootApplication");
         }

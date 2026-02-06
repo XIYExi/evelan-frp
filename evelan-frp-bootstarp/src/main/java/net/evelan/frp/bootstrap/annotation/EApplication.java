@@ -1,8 +1,5 @@
 package net.evelan.frp.bootstrap.annotation;
 
-import net.evelan.frp.bootstrap.annotation.bean.EComponent;
-import net.evelan.frp.bootstrap.annotation.bean.EConfiguration;
-
 import java.lang.annotation.*;
 
 /**
@@ -11,5 +8,5 @@ import java.lang.annotation.*;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
-public @interface EvelanBootApplication {
+public @interface EApplication {
 }

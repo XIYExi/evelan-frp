@@ -1,14 +1,11 @@
 package net.evelan.frp.server;
 
-import net.evelan.frp.bootstrap.annotation.EvelanBootApplication;
+import net.evelan.frp.bootstrap.annotation.EApplication;
 import net.evelan.frp.bootstrap.core.EvelanApplication;
 import net.evelan.frp.bootstrap.core.context.EvelanConfigApplicationContext;
-import net.evelan.frp.bootstrap.core.solver.PropertyResolver;
-
-import java.util.Properties;
 
 
-@EvelanBootApplication
+@EApplication
 public class EvelanFrpServerStarter {
     public static void main(String... args) {
         EvelanConfigApplicationContext context = EvelanApplication.run(EvelanFrpServerStarter.class, args);
