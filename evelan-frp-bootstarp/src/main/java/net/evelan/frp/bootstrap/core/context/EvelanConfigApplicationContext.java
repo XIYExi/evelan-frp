@@ -41,7 +41,11 @@ public class EvelanConfigApplicationContext implements ConfigurableApplicationCo
         this.dependencyInjector = new DependencyInjector(this, propertyResolver);
         this.beanInstantiator = new BeanInstantiator(this, propertyResolver);
         this.beanScanner = new BeanDefinitionScanner(this);
-        // 1. 扫描并注册 Bean 定义
+        /*
+         1. 扫描并注册 Bean 定义
+         这个时候虽然初始化了beans（ioc）容器，但是还没有实例化，只是拿到了BeanDefinition定义
+         也就是只知道有哪些对象被标记了，之后需要交给框架管理的
+         */
         this.beans = this.beanScanner.scan(); // 初始化 beans map
         this.creatingBeanNames = new HashSet<>();
         // 执行容器刷新，加载所有 Bean
@@ -53,19 +57,39 @@ public class EvelanConfigApplicationContext implements ConfigurableApplicationCo
      */
     public void refresh() {
 
-        // 2. 注册 BeanPostProcessor
+        /*
+        2. 注册 BeanPostProcessor
+        优先实例化并注册实现了 BeanPostProcessor 接口的 Bean。
+        BeanPostProcessor是实现拓展的主要手段，必须要在普通bean创建之前准备好，以便在普通beans初始化过程中进行拦截和处理
+         */
         registerBeanPostProcessors();
 
-        // 3. 实例化 Bean (分为 Configuration 和 普通 Bean)
+        /*
+         3. 实例化 Bean (分为 Configuration 和 普通 Bean)
+         优先实例化 @EConfiguration 标注的类, 配置类中通常包含@EBean工厂方法，这些方法定义了其他的Bean，因此配置类本身必须先于 这些通过工厂方法注册的bean 之前创建
+         */
         // 先实例化 @EConfiguration，因为它们可能包含工厂方法
         createEConfigurationBeans();
-        // 再实例化其他 Bean
+        /*
+         再实例化其他 Bean
+         此时仅调用构造函数，生成空壳对象，不进行属性注入。
+         此目的是为了解决循环依赖，如A依赖B，B依赖A，如果先创建A的空壳且暴露引用，然后创建B。
+         当B想要注入A的时候就可以拿到A的空壳引用，从而完成B的创建。
+         如果在此阶段直接注入属性，那么就会导致循环依赖
+         */
         createNormalBeans();
 
-        // 4. 依赖注入 (属性填充)
+        /*
+         4. 依赖注入 (属性填充)
+         遍历所有 Bean 实例，解析 @EValue 和 @EImport ，将依赖注入到字段或 Setter 方法中
+         将“空壳”对象填充为完整的对象。此时引用的依赖对象可能也处于“空壳”状态（如果是循环依赖），但这不影响引用的赋值。
+         */
         injectBeans();
 
-        // 5. 初始化 Bean (调用 @PostConstruct 等)
+        /*
+         5. 初始化 Bean (调用 @PostConstruct 等)
+         执行 Bean 的业务初始化逻辑（如开启连接、加载缓存）。AOP 代理通常在此阶段通过后置处理器完成，用代理对象替换原始对象。
+         */
         initBeans();
     }
 
