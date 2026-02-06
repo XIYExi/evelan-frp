@@ -1,6 +1,6 @@
 package net.evelan.frp.server;
 
-import net.evelan.frp.bootstrap.annotation.EService;
+import net.evelan.frp.bootstrap.annotation.core.EService;
 
 @EService
 public class TestServiceImpl implements TestService{

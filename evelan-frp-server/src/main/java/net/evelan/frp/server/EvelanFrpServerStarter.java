@@ -1,10 +1,13 @@
 package net.evelan.frp.server;
 
-import net.evelan.frp.bootstrap.core.AssembleApplicationContext;
+import net.evelan.frp.bootstrap.EvelanApplication;
+import net.evelan.frp.bootstrap.annotation.core.EvelanBootApplication;
+import net.evelan.frp.bootstrap.core.EvelanApplicationContext;
 
+@EvelanBootApplication
 public class EvelanFrpServerStarter {
     public static void main(String... args) {
-        AssembleApplicationContext context = new AssembleApplicationContext();
+        EvelanApplicationContext context = EvelanApplication.run(EvelanFrpServerStarter.class, args);
         TestController controller = (TestController) context.getBean(TestController.class);
         controller.test();
     }

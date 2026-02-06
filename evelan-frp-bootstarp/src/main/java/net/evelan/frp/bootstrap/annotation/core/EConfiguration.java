@@ -1,4 +1,4 @@
-package net.evelan.frp.bootstrap.annotation;
+package net.evelan.frp.bootstrap.annotation.core;
 
 import java.lang.annotation.*;
 
@@ -6,7 +6,7 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 @Documented
-public @interface EService {
+public @interface EConfiguration {
     String value() default "";
 }
 

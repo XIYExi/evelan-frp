@@ -1,12 +1,12 @@
 package net.evelan.frp.bootstrap.core;
 
-import net.evelan.frp.bootstrap.annotation.EBean;
-import net.evelan.frp.bootstrap.annotation.EConfiguration;
-import net.evelan.frp.bootstrap.annotation.EComponent;
-import net.evelan.frp.bootstrap.annotation.EController;
-import net.evelan.frp.bootstrap.annotation.EImport;
-import net.evelan.frp.bootstrap.annotation.EPostConstruct;
-import net.evelan.frp.bootstrap.annotation.EService;
+import net.evelan.frp.bootstrap.annotation.core.EBean;
+import net.evelan.frp.bootstrap.annotation.core.EConfiguration;
+import net.evelan.frp.bootstrap.annotation.core.EComponent;
+import net.evelan.frp.bootstrap.annotation.core.EController;
+import net.evelan.frp.bootstrap.annotation.core.EImport;
+import net.evelan.frp.bootstrap.annotation.core.EPostConstruct;
+import net.evelan.frp.bootstrap.annotation.core.EService;
 import net.evelan.frp.bootstrap.utils.ReflectionUtil;
 
 import java.lang.annotation.Annotation;
@@ -15,33 +15,78 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class AssembleApplicationContext {
+/**
+ * 标准的单例工厂模式实现
+ * 通过反射来创建Bean对象，通过三个注册表模式（三个Map）来管理Bean对象
+ * 实现了IOC的基本功能，Bean创建、依赖注入和生命周期管理
+ * 
+ * 修改说明：
+ * 1. 改为非静态成员变量，支持多实例
+ * 2. 增加refresh()方法，支持手动刷新
+ * 3. 增加构造函数，支持指定扫描包
+ *
+ * @version 2.0
+ */
+public class EvelanApplicationContext {
     /**
      * IOC 容器
      * key: 被扫描对象实现的接口 value：接口实现类
      */
-    private static final Map<Class<?>, List<Object>> interfaceContainerMap = new ConcurrentHashMap<>();
+    private final Map<Class<?>, List<Object>> interfaceContainerMap = new ConcurrentHashMap<>();
     /**
      * IOC 容器
      * key: 被扫描的class value: 对象
      */
-    private static final Map<Class<?>, Object> containerMap = new ConcurrentHashMap<>();
+    private final Map<Class<?>, Object> containerMap = new ConcurrentHashMap<>();
     /**
      * IOC扫描的对象
      * key：对象名字 value：对象
      */
-    private static Map<String, Object> iocNameContainerMap = new ConcurrentHashMap<>();
+    private final Map<String, Object> iocNameContainerMap = new ConcurrentHashMap<>();
+
+    private final String basePackage;
 
     /**
-     * 创建一个应用上下文
+     * 创建一个应用上下文，默认扫描当前包的根包
+     * 为了兼容旧代码，保持原有逻辑：取EvelanApplicationContext所在包的根包（通常是net）
      */
-    public AssembleApplicationContext() {
+    public EvelanApplicationContext() {
+        // 保持原有逻辑：EvelanApplicationContext.class.getPackageName().split("\\.")[0]
+        // 但建议使用带参数的构造函数以获得更精确的扫描范围
+        this(EvelanApplicationContext.class.getPackageName().split("\\.")[0]);
+    }
+
+    /**
+     * 创建一个应用上下文，指定扫描包
+     * @param basePackage 扫描包路径
+     */
+    public EvelanApplicationContext(String basePackage) {
+        this.basePackage = basePackage;
+        refresh();
+    }
+    
+    /**
+     * 创建一个应用上下文，指定主类
+     * @param primarySource 主类
+     */
+    public EvelanApplicationContext(Class<?> primarySource) {
+        this(primarySource.getPackageName());
+    }
+
+    /**
+     * 刷新容器，执行初始化
+     */
+    public void refresh() {
+        // 清理旧数据（如果是重新刷新）
+        interfaceContainerMap.clear();
+        containerMap.clear();
+        iocNameContainerMap.clear();
+        
         doInitInstance();
         doInitConfigurationBeans();
         doDI();
         doInitMethods();
     }
-
 
     /**
      * 执行初始化方法 @EPostConstruct
@@ -259,16 +304,18 @@ public class AssembleApplicationContext {
      * @return
      */
     private Set<Class<?>> collectBeanObject() {
-        String[] currentUtilClassAllClassnames = AssembleApplicationContext.class.getPackageName().split("\\.");
+        // 使用配置的basePackage
+        System.out.println("Scanning package: " + basePackage);
+        
         // 获取所有被 @EService @Component @EController @EConfiguration 注解标记的类
         Set<Class<?>> annotatedClasses = ReflectionUtil.findAnnotatedClasses(
-                currentUtilClassAllClassnames[0], // 从最顶部的包开始往下扫
+                basePackage, 
                 List.of(EController.class, EComponent.class, EService.class, EConfiguration.class),
                 // List.of(EComponent.class),
                 true
         );
         annotatedClasses.forEach(clazz -> {
-            System.out.println(clazz.getName());
+            System.out.println("Found bean class: " + clazz.getName());
         });
         return annotatedClasses;
     }
