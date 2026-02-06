@@ -1,7 +1,6 @@
-package net.evelan.frp.bootstrap;
+package net.evelan.frp.bootstrap.core.deprecated;
 
 import net.evelan.frp.bootstrap.annotation.EvelanBootApplication;
-import net.evelan.frp.bootstrap.core.EvelanApplicationContext;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,7 +8,8 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * 应用启动类
  */
-public class EvelanApplication {
+@Deprecated
+public class ServerEvelanApplication {
 
     /**
      * 记录已启动的应用主类，防止重复启动
@@ -22,7 +22,7 @@ public class EvelanApplication {
      * @param args 启动参数
      * @return 应用上下文
      */
-    public static EvelanApplicationContext run(Class<?> primarySource, String... args) {
+    public static ServerApplicationContext run(Class<?> primarySource, String... args) {
         // 检查是否有 @EvelanBootApplication 注解
         if (!primarySource.isAnnotationPresent(EvelanBootApplication.class)) {
             throw new RuntimeException("Startup failed: The primary source " + primarySource.getName() + 
@@ -44,7 +44,7 @@ public class EvelanApplication {
         try {
             // 创建并刷新应用上下文
             // 这里会自动推断 primarySource 所在的包作为扫描的基础包
-            EvelanApplicationContext context = new EvelanApplicationContext(primarySource);
+            ServerApplicationContext context = new ServerApplicationContext(primarySource);
             
             long endTime = System.currentTimeMillis();
             System.out.println("Evelan Application started in " + (endTime - startTime) / 1000.0 + " seconds");

@@ -1,4 +1,4 @@
-package net.evelan.frp.bootstrap.core;
+package net.evelan.frp.bootstrap.core.deprecated;
 
 import net.evelan.frp.bootstrap.annotation.bean.EBean;
 import net.evelan.frp.bootstrap.annotation.bean.EConfiguration;
@@ -27,7 +27,8 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @version 2.0
  */
-public class EvelanApplicationContext {
+@Deprecated
+public class ServerApplicationContext {
     /**
      * IOC 容器
      * key: 被扫描对象实现的接口 value：接口实现类
@@ -50,17 +51,17 @@ public class EvelanApplicationContext {
      * 创建一个应用上下文，默认扫描当前包的根包
      * 为了兼容旧代码，保持原有逻辑：取EvelanApplicationContext所在包的根包（通常是net）
      */
-    public EvelanApplicationContext() {
+    public ServerApplicationContext() {
         // 保持原有逻辑：EvelanApplicationContext.class.getPackageName().split("\\.")[0]
         // 但建议使用带参数的构造函数以获得更精确的扫描范围
-        this(EvelanApplicationContext.class.getPackageName().split("\\.")[0]);
+        this(ServerApplicationContext.class.getPackageName().split("\\.")[0]);
     }
 
     /**
      * 创建一个应用上下文，指定扫描包
      * @param basePackage 扫描包路径
      */
-    public EvelanApplicationContext(String basePackage) {
+    public ServerApplicationContext(String basePackage) {
         this.basePackage = basePackage;
         refresh();
     }
@@ -69,7 +70,7 @@ public class EvelanApplicationContext {
      * 创建一个应用上下文，指定主类
      * @param primarySource 主类
      */
-    public EvelanApplicationContext(Class<?> primarySource) {
+    public ServerApplicationContext(Class<?> primarySource) {
         this(primarySource.getPackageName());
     }
 

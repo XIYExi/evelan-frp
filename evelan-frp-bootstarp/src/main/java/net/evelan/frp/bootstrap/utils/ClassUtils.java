@@ -1,8 +1,10 @@
 package net.evelan.frp.bootstrap.utils;
 
+import net.evelan.frp.bootstrap.annotation.bean.EBean;
 import net.evelan.frp.bootstrap.annotation.bean.EComponent;
 import net.evelan.frp.bootstrap.annotation.bean.EConfiguration;
 import net.evelan.frp.bootstrap.annotation.lifecycle.EPostConstruct;
+import net.evelan.frp.bootstrap.annotation.lifecycle.EValue;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -47,6 +49,20 @@ public class ClassUtils {
         return name;
     }
 
+    /**
+     * 获取beanName
+     * EBean对象获取beanName用的，如果没有传递value就默认获得函数名作为beanName
+     * @param method EBean对象（被标记的方法）
+     * @return beanName
+     */
+    public static String getBeanName(Method method) {
+        EBean bean = method.getAnnotation(EBean.class);
+        String value = bean.value();
+        if (!value.isEmpty())
+            return value;
+        return method.getName();
+    }
+
 
     /**
      * 获取@EPostConstruct 和 @EPreDestroy 注解的方法
@@ -70,6 +86,46 @@ public class ClassUtils {
     }
 
     public static <A extends Annotation> A findAnnotation(Class<?> target, Class<A> annoClass) {
+        A a = target.getAnnotation(annoClass);
+        for (Annotation anno : target.getAnnotations()) {
+            Class<? extends Annotation> annoType = anno.annotationType();
+            if (!annoType.getPackageName().equals("java.lang.annotation")) {
+                A found = findAnnotation(annoType, annoClass);
+                if (found != null) {
+                    if (a != null)
+                        throw new RuntimeException("Duplicate @" + annoClass.getSimpleName() + " found on class " + target.getSimpleName());
+                    a = found;
+                }
+            }
+        }
+        return a;
+    }
+
+
+    /**
+     * 获取参数的注解
+     * @param paramAnnos 参数注解
+     * @param annoClass 注解类
+     * @return 注解
+     * @param <A>
+     */
+    @SuppressWarnings("unchecked")
+    public static <A extends Annotation> A getAnnotation(Annotation[] paramAnnos, Class<A> annoClass) {
+        for (Annotation paramAnno : paramAnnos) {
+            // 判断参数注解是不是annoClass的实例
+            // 这里是在判断@EValue和@EImport
+            // 因为可能使用的是构造器注入，如 A(@Import B b) 这种形式里面B是一个参数，需要判断这个参数是不是对应的注解, 如果是要返回去到ioc容器里面拿值
+            if (annoClass.isInstance(paramAnno))
+                return (A) paramAnno;
+        }
         return null;
+    }
+
+    public static Method getNamedMethod(Class<?> clazz, String methodName) {
+        try {
+            return clazz.getDeclaredMethod(methodName);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(String.format("Method '%s' not found in class: %s", methodName, clazz.getName()));
+        }
     }
 }
