@@ -1,8 +1,8 @@
 package net.evelan.frp.server;
 
-import net.evelan.frp.bootstrap.annotation.EComponent;
+import net.evelan.frp.bootstrap.annotation.EService;
 
-@EComponent
+@EService
 public class TestServiceImpl implements TestService{
     @Override
     public void test(int a) {

@@ -1,18 +1,21 @@
 package net.evelan.frp.bootstrap.core;
 
+import net.evelan.frp.bootstrap.annotation.EBean;
+import net.evelan.frp.bootstrap.annotation.EConfiguration;
 import net.evelan.frp.bootstrap.annotation.EComponent;
 import net.evelan.frp.bootstrap.annotation.EController;
 import net.evelan.frp.bootstrap.annotation.EImport;
 import net.evelan.frp.bootstrap.annotation.EPostConstruct;
+import net.evelan.frp.bootstrap.annotation.EService;
 import net.evelan.frp.bootstrap.utils.ReflectionUtil;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AssembleApplicationContext {
-
     /**
      * IOC 容器
      * key: 被扫描对象实现的接口 value：接口实现类
@@ -31,18 +34,17 @@ public class AssembleApplicationContext {
 
     /**
      * 创建一个应用上下文
-     *
-     * @param configFilePath yaml配置文件路径
      */
-    public AssembleApplicationContext(String configFilePath) {
+    public AssembleApplicationContext() {
         doInitInstance();
+        doInitConfigurationBeans();
         doDI();
         doInitMethods();
     }
 
 
     /**
-     * 执行初始化方法
+     * 执行初始化方法 @EPostConstruct
      */
     private void doInitMethods() {
         for (Map.Entry<Class<?>, Object> entry : containerMap.entrySet()) {
@@ -74,6 +76,7 @@ public class AssembleApplicationContext {
             classObjectGeneration(annClasses);
         } catch (Exception e) {
             System.out.println("初始化失败：" + e.getMessage());
+            e.printStackTrace();
             System.exit(1);
         }
     }
@@ -126,6 +129,105 @@ public class AssembleApplicationContext {
         }
     }
 
+    /**
+     * 初始化配置类 @EConfiguration 中的 @EBean 注解标记的方法
+     * 1. 这里默认所有的 @EBean 只能在 @EConfiguration 中被注册
+     * 2. 默认 @EConfiguration 不能是接口或抽象类以及接口的实现，必须是一个具体的类
+     */
+    private void doInitConfigurationBeans() {
+        Set<Map.Entry<Class<?>, Object>> entries = new HashSet<>(containerMap.entrySet());
+        for (Map.Entry<Class<?>, Object> entry : entries) {
+            Class<?> configClass = entry.getKey();
+            if (!configClass.isAnnotationPresent(EConfiguration.class)) continue;
+            // 找到所有的 @EConfiguration 注解标记的类
+            Object configInstance = entry.getValue();
+            // 拿到所有的方法
+            Method[] methods = configClass.getDeclaredMethods();
+            for (Method method : methods) {
+                if (!method.isAnnotationPresent(EBean.class)) continue;
+                // 拿到所有的 @EBean 注解标记的方法
+                method.setAccessible(true);
+                // 注入 @EBean 依赖
+                Object bean = invokeEBeanMethod(configInstance, method);
+                if (bean == null) {
+                    throw new RuntimeException("@EBean method returned null: " + configClass.getName() + "#" + method.getName());
+                }
+                // 注册 @EBean 到容器
+                EBean eBean = method.getAnnotation(EBean.class);
+                String beanName = (eBean.value() == null || eBean.value().isEmpty()) ? method.getName() : eBean.value();
+                registerBean(bean, beanName);
+            }
+        }
+    }
+
+    
+    /**
+     * 调用 @EBean 注解标记的方法
+     * @param configInstance 配置类实例
+     * @param method 被 @EBean 注解标记的方法
+     * @return 方法执行结果
+     */
+    private Object invokeEBeanMethod(Object configInstance, Method method) {
+        try {
+            // 通过反射，那么这个函数的参数
+            Class<?>[] parameterTypes = method.getParameterTypes();
+            Object[] args = new Object[parameterTypes.length];
+            for (int i = 0; i < parameterTypes.length; i++) {
+                Class<?> parameterType = parameterTypes[i];
+                // 直接通过类型去IOC容器里面找
+                Object dependency = getBean(parameterType);
+                // 如果没有找到，那么就按照接口类型去找
+                if (dependency == null) dependency = getBeanByInterface(parameterType);
+                // 如果还是没有找到，那么就报错
+                if (dependency == null) {
+                    throw new RuntimeException("No bean of type " + parameterType.getName() + " available for @EBean method " + method.getName());
+                }
+                // 把依赖注入到参数数组里面
+                args[i] = dependency;
+            }
+            // 注入 @EBean 依赖
+            return method.invoke(configInstance, args);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to invoke @EBean method: " + method.getName(), e);
+        }
+    }
+
+    /**
+     * 注册 @EBean 到容器
+     * @param bean
+     * @param beanName
+     */
+    private void registerBean(Object bean, String beanName) {
+        Class<?> beanClass = bean.getClass();
+        // 检查是否已经存在相同类型的 bean
+        if (containerMap.containsKey(beanClass)) {
+            throw new RuntimeException("IOC container has already exist class bean: " + beanClass.getName());
+        }
+        containerMap.put(beanClass, bean);
+
+        for (Class<?> anInterface : beanClass.getInterfaces()) {
+            // 注册接口到容器
+            List<Object> objects = interfaceContainerMap.get(anInterface);
+            if (objects == null) {
+                List<Object> objs = new ArrayList<>();
+                objs.add(bean);
+                interfaceContainerMap.put(anInterface, objs);
+            } else {
+                objects.add(bean);
+            }
+        }
+
+        if (beanName != null && !beanName.isEmpty()) {
+            if (!iocNameContainerMap.containsKey(beanName)) {
+                iocNameContainerMap.put(beanName, bean);
+            } else {
+                throw new RuntimeException("IOC container has already exist: " + beanName);
+            }
+        }
+    }
+
     private Object getBeanByInterface(Class<?> clazz) {
         if (interfaceContainerMap.containsKey(clazz)) {
             List<Object> objects = interfaceContainerMap.get(clazz);
@@ -158,10 +260,11 @@ public class AssembleApplicationContext {
      */
     private Set<Class<?>> collectBeanObject() {
         String[] currentUtilClassAllClassnames = AssembleApplicationContext.class.getPackageName().split("\\.");
-        // 获取所有被 @EBean @Component @EController 注解标记的类
+        // 获取所有被 @EService @Component @EController @EConfiguration 注解标记的类
         Set<Class<?>> annotatedClasses = ReflectionUtil.findAnnotatedClasses(
                 currentUtilClassAllClassnames[0], // 从最顶部的包开始往下扫
-                List.of(EController.class, EComponent.class),
+                List.of(EController.class, EComponent.class, EService.class, EConfiguration.class),
+                // List.of(EComponent.class),
                 true
         );
         annotatedClasses.forEach(clazz -> {
@@ -172,12 +275,15 @@ public class AssembleApplicationContext {
 
     /**
      * 反射给扫描出来的类生成对象
+     * @param annClasses 扫描出来的类
+     * @throws InstantiationException
+     * @throws IllegalAccessException
      */
     private void classObjectGeneration(Set<Class<?>> annClasses) throws InstantiationException, IllegalAccessException {
         for (Class<?> clazz : annClasses) {
             // 通过反射创建对象
-            Object o = clazz.newInstance();
-            // 获得这个类实现的接口
+            Object o = clazz.newInstance(); // 实例
+            // 如果是接口 获得这个类实现的接口
             Class<?>[] interfaces = clazz.getInterfaces();
             for (Class<?> anInterface : interfaces) {
                 // 把接口的实现类存储到容器中
@@ -187,31 +293,60 @@ public class AssembleApplicationContext {
                     objs.add(o);
                     interfaceContainerMap.put(anInterface, objs);
                 } else {
-                    objects.add(0);
+                    objects.add(o);
                 }
             }
             // 把扫描的对象存储到ioc容器中
             containerMap.put(clazz, o);
-            // 要么有@EController注解，要么有@EComponent注解
-            EController eController = clazz.getAnnotation(EController.class);
-            EComponent eComponent = clazz.getAnnotation(EComponent.class);
-            if (eComponent != null || eController != null) {
-                String value = null;
-                if (eController != null) {
-                    value = eController.value();
-                } else if (eComponent != null){
-                    value = eComponent.value();
-                }
-                // 对象的名字
-                String objectName = value == null || value.isEmpty() ? getObjectName(clazz) : value;
+            // 解析注解上的value值 如果为空 则使用类名作为对象名（bean的名字）
+            String objectName = resolveStereotypeObjectName(clazz);
+            if (objectName == null) continue;
 
-                // 把对象存储起来
-                if (!iocNameContainerMap.containsKey(objectName))
-                    iocNameContainerMap.put(objectName, o);
-                else
-                    throw new RuntimeException("IOC container has already exist: " + objectName);
+            if (!iocNameContainerMap.containsKey(objectName))
+                iocNameContainerMap.put(objectName, o);
+            else
+                throw new RuntimeException("IOC container has already exist: " + objectName);
+        }
+    }
+
+    private String resolveStereotypeObjectName(Class<?> clazz) {
+        EController eController = clazz.getAnnotation(EController.class);
+        if (eController != null) {
+            return (eController.value() == null || eController.value().isEmpty()) ? getObjectName(clazz) : eController.value();
+        }
+
+        EComponent eComponent = clazz.getAnnotation(EComponent.class);
+        if (eComponent != null) {
+            return (eComponent.value() == null || eComponent.value().isEmpty()) ? getObjectName(clazz) : eComponent.value();
+        }
+
+        EService eService = clazz.getAnnotation(EService.class);
+        if (eService != null) {
+            return (eService.value() == null || eService.value().isEmpty()) ? getObjectName(clazz) : eService.value();
+        }
+
+        EConfiguration eConfiguration = clazz.getAnnotation(EConfiguration.class);
+        if (eConfiguration != null) {
+            return (eConfiguration.value() == null || eConfiguration.value().isEmpty()) ? getObjectName(clazz) : eConfiguration.value();
+        }
+
+        for (Annotation annotation : clazz.getAnnotations()) {
+            Class<? extends Annotation> annotationType = annotation.annotationType();
+            if (!annotationType.isAnnotationPresent(EComponent.class)) continue;
+            try {
+                Method valueMethod = annotationType.getMethod("value");
+                Object value = valueMethod.invoke(annotation);
+                if (!(value instanceof String)) return getObjectName(clazz);
+                String valueStr = (String) value;
+                return valueStr.isEmpty() ? getObjectName(clazz) : valueStr;
+            } catch (NoSuchMethodException e) {
+                return getObjectName(clazz);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to resolve bean name for " + clazz.getName(), e);
             }
         }
+
+        return null;
     }
 
 
